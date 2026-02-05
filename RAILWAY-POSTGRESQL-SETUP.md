@@ -263,3 +263,4 @@ local_memory = json.load(open('~/.config/moltbook/babeta-memory.json'))
 2. Deploy updated code
 3. Test: `curl https://babeta.up.railway.app/memory/stats`
 4. Watch babeta build memories! 🧠
+# Railway PostgreSQL deployment Thu  5 Feb 2026 12:05:29 +08
