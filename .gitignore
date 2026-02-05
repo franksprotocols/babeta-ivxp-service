@@ -1,15 +1,34 @@
+# Python
 *.pyc
 __pycache__/
 *.log
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+venv/
+env/
+
+# Sensitive files - NEVER commit these
 .env
+*.key
+*.pem
+*_private_key*
+credentials.json
+secrets.json
+config.local.json
+wallet-keystore
+
+# IDE
 .DS_Store
 *.swp
 *.swo
 .vscode/
 .idea/
-venv/
-env/
-*.egg-info/
-dist/
-build/
-.pytest_cache/
+
+# Local testing files
+babeta-agent.py
+babeta-payments.py
+ivxp-client.py
+test-*.py
+*-test.py
