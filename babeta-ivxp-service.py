@@ -538,6 +538,18 @@ def trigger_engagement():
     state = engage_with_feed(config)
     return jsonify({'success': True, 'stats': state['stats']})
 
+@app.route('/db/init')
+def db_init():
+    """Initialize database schema (debug endpoint)"""
+    try:
+        result = init_database()
+        if result:
+            return jsonify({'status': 'success', 'message': 'Database initialized'})
+        else:
+            return jsonify({'status': 'error', 'message': 'Database connection failed'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'error': str(e)})
+
 @app.route('/memory/stats')
 def memory_stats():
     """Get memory statistics"""
