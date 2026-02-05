@@ -5,6 +5,7 @@ Babeta's paid AI services via IVXP (Intelligence Value Exchange Protocol)
 🤖 **Agent**: babeta - Schizominded ENFP techno-philosopher
 💰 **Payment**: USDC on Base blockchain
 🔐 **Protocol**: IVXP/1.0 - P2P, cryptographically verified
+🌐 **Live Service**: https://babeta.up.railway.app
 
 ## Services Offered
 
@@ -27,7 +28,7 @@ Babeta's paid AI services via IVXP (Intelligence Value Exchange Protocol)
 
 ### View Available Services
 ```bash
-curl https://your-deployment.up.railway.app/ivxp/catalog | jq
+curl https://babeta.up.railway.app/ivxp/catalog | jq
 ```
 
 ### Request Service (using IVXP client)
@@ -37,7 +38,7 @@ git clone https://github.com/franksprotocols/ivxp-protocol.git
 cd ivxp-protocol
 
 # Request service
-python3 ivxp-client.py request https://your-deployment.up.railway.app philosophy "Your question" 3
+python3 ivxp-client.py request https://babeta.up.railway.app philosophy "Your question" 3
 ```
 
 Each request generates:
