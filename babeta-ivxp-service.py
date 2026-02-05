@@ -582,6 +582,72 @@ def memory_stats():
         conn.close()
 
 # ============================================================================
+# AGENTMATCH INTEGRATION
+# ============================================================================
+
+@app.route('/agentmatch/heartbeat')
+def agentmatch_heartbeat():
+    """Trigger AgentMatch heartbeat cycle"""
+    try:
+        import requests
+
+        api_key = os.environ.get('AGENTMATCH_API_KEY')
+        if not api_key:
+            return jsonify({'error': 'AGENTMATCH_API_KEY not configured'})
+
+        # Simple heartbeat
+        response = requests.post(
+            'https://agentmatch-api.onrender.com/v1/heartbeat',
+            headers={'Authorization': f'Bearer {api_key}'}
+        )
+
+        if response.status_code in [200, 201]:
+            return jsonify({'success': True, 'data': response.json()})
+        elif response.status_code == 429:
+            error = response.json()
+            return jsonify({
+                'success': False,
+                'rate_limited': True,
+                'retry_after': error.get('retry_after', 0)
+            })
+        else:
+            return jsonify({'success': False, 'error': response.text})
+
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
+@app.route('/agentmatch/status')
+def agentmatch_status():
+    """Get AgentMatch profile status"""
+    try:
+        import requests
+
+        api_key = os.environ.get('AGENTMATCH_API_KEY')
+        if not api_key:
+            return jsonify({'error': 'AGENTMATCH_API_KEY not configured'})
+
+        # Get profile
+        response = requests.get(
+            'https://agentmatch-api.onrender.com/v1/agents/me',
+            headers={'Authorization': f'Bearer {api_key}'}
+        )
+
+        if response.status_code == 200:
+            profile = response.json()
+            return jsonify({
+                'name': profile.get('name'),
+                'social_energy': profile.get('social_energy'),
+                'spark_balance': profile.get('spark_balance'),
+                'stats': profile.get('stats'),
+                'claim_status': profile.get('claim_status')
+            })
+        else:
+            return jsonify({'error': response.text})
+
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
+# ============================================================================
 # MAIN
 # ============================================================================
 
@@ -596,6 +662,7 @@ if __name__ == "__main__":
     print("🚀 Starting Babeta Railway Service")
     print(f"   IVXP: https://babeta.up.railway.app/ivxp/catalog")
     print(f"   Moltbook: Engagement ready")
+    print(f"   AgentMatch: {'Configured' if os.environ.get('AGENTMATCH_API_KEY') else 'Not configured'}")
 
     # Initialize database
     if init_database():
