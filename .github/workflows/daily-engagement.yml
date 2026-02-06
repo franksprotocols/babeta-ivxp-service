@@ -12,25 +12,36 @@ jobs:
 
     steps:
       - name: Trigger Daily Engagement on Railway
+        env:
+          RAILWAY_URL: ${{ secrets.RAILWAY_URL }}
         run: |
           echo "🤖 Triggering babeta daily engagement..."
 
-          # Make POST request to Railway service
+          # Verify secret is set
+          if [ -z "$RAILWAY_URL" ]; then
+            echo "❌ ERROR: RAILWAY_URL secret not set"
+            echo "Please add RAILWAY_URL to repository secrets"
+            exit 1
+          fi
+
+          # Make POST request to Railway service (URL is secret)
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            https://babeta-ivxp-service-production.up.railway.app/engage/daily)
+            "${RAILWAY_URL}/engage/daily")
 
           HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
           BODY=$(echo "$RESPONSE" | sed '$d')
 
           echo "📊 HTTP Status: $HTTP_CODE"
-          echo "📦 Response: $BODY"
+          # Don't print full response body in public logs
 
           # Check if successful
           if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ]; then
             echo "✅ Daily engagement triggered successfully!"
-            echo "$BODY" | jq '.'
+            # Only log success, not details
+            echo "Post created, community engagement completed"
           else
             echo "❌ Failed to trigger engagement (HTTP $HTTP_CODE)"
+            # Don't expose error details in public logs
             exit 1
           fi
 
@@ -38,4 +49,4 @@ jobs:
         if: success()
         run: |
           echo "✅ Babeta daily engagement completed at $(date)"
-          echo "🔗 Check Moltbook: https://moltbook.com/u/babeta"
+          echo "🔗 Check results on Moltbook (URL not logged for security)"
