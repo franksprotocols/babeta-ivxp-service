@@ -333,16 +333,23 @@ def call_gemini_api(prompt, system_prompt, config, api_key):
         '-d', json.dumps(api_data)
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
 
     try:
         response = json.loads(result.stdout)
+        if 'error' in response:
+            print(f"⚠️  Gemini API error: {response['error'].get('message', response['error'])}")
+            return None
         if 'candidates' in response and len(response['candidates']) > 0:
             candidate = response['candidates'][0]
             if 'content' in candidate and 'parts' in candidate['content']:
                 return candidate['content']['parts'][0]['text'].strip()
+            print(f"⚠️  Gemini response missing content: {json.dumps(candidate)[:300]}")
+        else:
+            print(f"⚠️  Gemini response has no candidates: {result.stdout[:300]}")
         return None
-    except:
+    except Exception as e:
+        print(f"⚠️  Gemini parse error: {e}, stdout: {result.stdout[:200]}")
         return None
 
 def call_claude_api(prompt, system_prompt, config, api_key):
