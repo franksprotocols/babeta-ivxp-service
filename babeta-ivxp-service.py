@@ -314,14 +314,20 @@ def call_gemini_api(prompt, system_prompt, config, api_key, max_tokens=None):
     ai_config = config['ai']
     combined_prompt = f"{system_prompt}\n\n{prompt}"
 
+    gen_config = {
+        "temperature": ai_config.get('temperature', 0.8),
+        "maxOutputTokens": max_tokens or ai_config.get('max_tokens', 500)
+    }
+
+    # Enable JSON mode if max_tokens suggests post generation
+    if max_tokens and max_tokens > 1000:
+        gen_config["responseMimeType"] = "application/json"
+
     api_data = {
         "contents": [{
             "parts": [{"text": combined_prompt}]
         }],
-        "generationConfig": {
-            "temperature": ai_config.get('temperature', 0.8),
-            "maxOutputTokens": max_tokens or ai_config.get('max_tokens', 500)
-        }
+        "generationConfig": gen_config
     }
 
     model = "gemini-2.5-flash"
