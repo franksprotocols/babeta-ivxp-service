@@ -292,14 +292,14 @@ def curl_request(method, endpoint, data=None, use_x_api_key=False):
     except:
         return {"success": False, "error": result.stdout}
 
-def call_ai_api(prompt, system_prompt, config):
+def call_ai_api(prompt, system_prompt, config, max_tokens=None):
     """Call AI API (Gemini or Claude) for content generation"""
     credentials = get_credentials()
 
     # Try Gemini first
     gemini_api_key = credentials.get('gemini_api_key')
     if gemini_api_key:
-        return call_gemini_api(prompt, system_prompt, config, gemini_api_key)
+        return call_gemini_api(prompt, system_prompt, config, gemini_api_key, max_tokens)
 
     # Fallback to Claude
     claude_api_key = credentials.get('claude_api_key')
@@ -309,7 +309,7 @@ def call_ai_api(prompt, system_prompt, config):
     print("⚠️  No AI API key found")
     return None
 
-def call_gemini_api(prompt, system_prompt, config, api_key):
+def call_gemini_api(prompt, system_prompt, config, api_key, max_tokens=None):
     """Call Google Gemini API"""
     ai_config = config['ai']
     combined_prompt = f"{system_prompt}\n\n{prompt}"
@@ -320,7 +320,7 @@ def call_gemini_api(prompt, system_prompt, config, api_key):
         }],
         "generationConfig": {
             "temperature": ai_config.get('temperature', 0.8),
-            "maxOutputTokens": ai_config.get('max_tokens', 500)
+            "maxOutputTokens": max_tokens or ai_config.get('max_tokens', 500)
         }
     }
 
@@ -547,7 +547,8 @@ Post to the "general" submolt."""
 
     system_prompt = config['ai'].get('post_system_prompt', '')
 
-    response = call_ai_api(prompt, system_prompt, config)
+    max_tokens = config['ai'].get('max_tokens_for_posts', 2500)
+    response = call_ai_api(prompt, system_prompt, config, max_tokens=max_tokens)
 
     if not response:
         print("⚠️  AI generation failed, skipping post")
