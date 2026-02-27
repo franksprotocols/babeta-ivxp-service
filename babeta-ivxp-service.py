@@ -553,22 +553,11 @@ Post to the "general" submolt."""
         print("⚠️  AI generation failed, skipping post")
         return None
 
-    # Extract JSON from AI response
+    # Extract JSON from AI response: find first { to last }
     text = response.strip()
-
-    # Strip markdown code fences line by line
-    lines = text.split('\n')
-    cleaned = []
-    for line in lines:
-        stripped = line.strip()
-        if stripped.startswith('```'):
-            continue  # skip fence lines
-        cleaned.append(line)
-    text = '\n'.join(cleaned).strip()
-
-    # Find the JSON object: first { to last }
     first_brace = text.find('{')
     last_brace = text.rfind('}')
+
     if first_brace != -1 and last_brace > first_brace:
         json_str = text[first_brace:last_brace + 1]
         try:
@@ -578,9 +567,9 @@ Post to the "general" submolt."""
                 return post_data
         except json.JSONDecodeError as e:
             print(f"⚠️  JSON parse error: {e}")
-            print(f"⚠️  Attempted to parse: {json_str[:300]}")
+            print(f"⚠️  JSON string (first 500 chars): {json_str[:500]}")
 
-    print(f"⚠️  Could not extract JSON from AI response. Preview: {text[:300]}")
+    print(f"⚠️  Could not extract JSON. Raw response (first 500 chars): {text[:500]}")
     return None
 
 
