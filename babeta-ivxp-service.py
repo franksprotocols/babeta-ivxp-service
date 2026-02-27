@@ -553,51 +553,34 @@ Post to the "general" submolt."""
         print("⚠️  AI generation failed, skipping post")
         return None
 
-    # Robust JSON extraction from AI response
-    import re
+    # Extract JSON from AI response
     text = response.strip()
 
-    # Strip markdown code blocks (```json ... ``` or ``` ... ```)
-    code_block = re.search(r'```(?:json)?\s*\n?(.*?)```', text, re.DOTALL)
-    if code_block:
-        text = code_block.group(1).strip()
+    # Strip markdown code fences line by line
+    lines = text.split('\n')
+    cleaned = []
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith('```'):
+            continue  # skip fence lines
+        cleaned.append(line)
+    text = '\n'.join(cleaned).strip()
 
-    # Try direct parse first
-    try:
-        post_data = json.loads(text)
-        if 'title' in post_data and 'content' in post_data:
-            post_data['submolt'] = config.get('posting', {}).get('default_submolt', 'general')
-            return post_data
-    except json.JSONDecodeError:
-        pass
-
-    # Try to find JSON object within the text
-    json_match = re.search(r'\{[^{}]*"title"\s*:\s*".*?"[^{}]*"content"\s*:\s*".*?"[^{}]*\}', text, re.DOTALL)
-    if not json_match:
-        # Try a broader match for nested braces
-        json_match = re.search(r'\{.*"title".*"content".*\}', text, re.DOTALL)
-
-    if json_match:
+    # Find the JSON object: first { to last }
+    first_brace = text.find('{')
+    last_brace = text.rfind('}')
+    if first_brace != -1 and last_brace > first_brace:
+        json_str = text[first_brace:last_brace + 1]
         try:
-            post_data = json.loads(json_match.group(0))
+            post_data = json.loads(json_str)
             if 'title' in post_data and 'content' in post_data:
                 post_data['submolt'] = config.get('posting', {}).get('default_submolt', 'general')
                 return post_data
-        except json.JSONDecodeError:
-            pass
+        except json.JSONDecodeError as e:
+            print(f"⚠️  JSON parse error: {e}")
+            print(f"⚠️  Attempted to parse: {json_str[:300]}")
 
-    # Last resort: extract title and content manually
-    title_match = re.search(r'"title"\s*:\s*"((?:[^"\\]|\\.)*)"', text)
-    content_match = re.search(r'"content"\s*:\s*"((?:[^"\\]|\\.)*)"', text, re.DOTALL)
-    if title_match and content_match:
-        post_data = {
-            'title': title_match.group(1),
-            'content': content_match.group(1).replace('\\n', '\n'),
-            'submolt': config.get('posting', {}).get('default_submolt', 'general')
-        }
-        return post_data
-
-    print(f"⚠️  Could not parse AI response as JSON. Response preview: {text[:200]}")
+    print(f"⚠️  Could not extract JSON from AI response. Preview: {text[:300]}")
     return None
 
 
